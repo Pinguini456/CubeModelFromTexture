@@ -17,8 +17,8 @@ class FormWindow(tk.Tk):
 
         self.title("Cube From Texture")
         self.geometry("250x350")
-        # self.minsize(250, 150)
-        # self.maxsize(250, 150)
+        self.minsize(250, 350)
+        self.maxsize(250, 350)
 
         self.size_label = tk.Label(self, text="img size")
         self.model_size_label = tk.Label(self, text="model size")
