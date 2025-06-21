@@ -3,7 +3,6 @@ from form import *
 
 def main():
     window = FormWindow()
-
     window.mainloop()
 
 
