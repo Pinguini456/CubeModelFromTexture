@@ -113,4 +113,6 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
     output_image = output_image.resize((img_size[0], img_size[1]), resample=Image.Resampling.NEAREST)
     output_image.save(output_folder + '/' + 'output.png')
 
+    pygame.quit()
+
 # render('stonebrick.png', 'stonebrick.png', 'stonebrick.png', (64, 64), (1, 1), '', False)
