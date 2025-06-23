@@ -164,10 +164,13 @@ class FormWindow(tk.Tk):
     def start(self):
         img_size = [int(self.width.get()), int(self.height.get())]
         cube_size = [int(self.model_width.get()), int(self.model_height.get())]
-        if self.stair.get() == 1:
-            render_stair(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir)
-        else:
-            render(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir)
 
+        if self.bulk.get() == 0:
+            if self.stair.get() == 1:
+                render_stair(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir)
+            else:
+                render(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir)
+        else:
+            pass
 
 

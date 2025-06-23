@@ -107,7 +107,7 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
 
     i = 0
     for point in points:
-        transform3d = transform_matrix(point.reshape((3, 1)), cube_size[0], cube_size[1])
+        transform3d = transform_matrix(point.reshape((3, 1)), cube_size[0] / 100, cube_size[1] / 100)
         rotated3d = np.dot(y_rotation_matrix, transform3d)
         rotated3d = np.dot(x_rotation_matrix, rotated3d)
         projected2d = np.dot(projection_matrix, rotated3d)
@@ -115,6 +115,8 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
         y = int(projected2d[1][0] * scale) + pos[1]
         projected_points[i] = [x, y]
         i += 1
+
+    print('creating matrix')
 
     left_bright = 34
     right_bright = 63
@@ -133,6 +135,8 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
     output_surf.blit(left_surf, (-5, 2))
     output_surf.blit(right_surf, (4, 2))
 
+    print('loading images')
+
     output_array_rgb = pygame.surfarray.array3d(output_surf)
     output_array_alpha = pygame.surfarray.pixels_alpha(output_surf)
     output_array = np.dstack((output_array_rgb, output_array_alpha))
@@ -141,6 +145,8 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
     output_image = ImageOps.mirror(output_image)
     output_image = output_image.resize((img_size[0], img_size[1]), resample=Image.Resampling.NEAREST)
     output_image.save(output_folder + '/' + 'output.png')
+
+    print('exporting image')
 
     pygame.quit()
 
@@ -202,7 +208,7 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
 
     i = 0
     for point in points:
-        transformed3d = transform_matrix(point.reshape((3, 1)), cube_size[0], cube_size[1])
+        transformed3d = transform_matrix(point.reshape((3, 1)), cube_size[0] / 100, cube_size[1] / 100)
         reflected3d = np.dot(xz_reflection_matrix, transformed3d)
         rotated3d = np.dot(y_rotation_matrix, reflected3d)
         rotated3d = np.dot(x_rotation_matrix, rotated3d)
@@ -211,6 +217,8 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
         y = int(projected2d[1][0] * scale) + pos[1]
         projected_points[i] = [x, y]
         i += 1
+
+    print('creating matrix')
 
     make_image_quadrant_transparent(top_texture, [3, 4])
     make_image_quadrant_transparent(top_texture, [1, 2])
@@ -234,6 +242,8 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
     output_surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     output_surf.fill((0, 0, 0, 0))
 
+    print('loading images')
+
     output_surf.blit(top_left_surf, (9, 0))
     output_surf.blit(top_right_surf, (-2, 4))
     output_surf.blit(left_surf, (4, 7))
@@ -248,6 +258,8 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
     output_image = ImageOps.mirror(output_image)
     output_image = output_image.resize((img_size[0], img_size[1]), resample=Image.Resampling.NEAREST)
     output_image.save(output_folder + '/' + 'output.png')
+
+    print('exporting image')
 
     pygame.quit()
 
