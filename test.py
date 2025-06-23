@@ -1,106 +1,64 @@
 import pygame
+import cv2
 import numpy as np
-from math import *
 
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLACK = (0, 0, 0)
+# Initialize
+pygame.init()
+screen = pygame.display.set_mode((800, 600))
+pygame.display.set_caption("Perfect Perspective Warp")
 
-WIDTH, HEIGHT = 800, 600
-pygame.display.set_caption("3D projection in pygame!")
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+# Load and prepare image
+image = cv2.imread("stonebrick.png", cv2.IMREAD_UNCHANGED)
 
-scale = 100
+if image.shape[2] == 3:
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGBA)
+else:
+    image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
 
-circle_pos = [WIDTH/2, HEIGHT/2]  # x, y
+h, w = image.shape[:2]
 
-angle = 0
+# Define source points (image corners)
+src_pts = np.float32([[0, 0], [w, 0], [w, h], [0, h]])
 
-points = []
-
-# all the cube vertices
-points.append(np.matrix([-1, -1, 1]))
-points.append(np.matrix([1, -1, 1]))
-points.append(np.matrix([1,  1, 1]))
-points.append(np.matrix([-1, 1, 1]))
-points.append(np.matrix([-1, -1, -1]))
-points.append(np.matrix([1, -1, -1]))
-points.append(np.matrix([1, 1, -1]))
-points.append(np.matrix([-1, 1, -1]))
-
-
-projection_matrix = np.matrix([
-    [1, 0, 0],
-    [0, 1, 0]
+# Define destination points (screen polygon)
+dst_pts = np.float32([
+    [259.0, 218.0],    # top-right
+    [400.0, 300.0],   # bottom-right
+    [541.0, 219.0],   # top-left
+    [400.0, 138.0]    # bottom-left
 ])
 
-
-projected_points = [
-    [n, n] for n in range(len(points))
+points = [
+    [259.0, 218.0],    # top-right
+    [400.0, 300.0],   # bottom-right
+    [541.0, 219.0],   # top-left
+    [400.0, 138.0]
 ]
 
+# Compute perspective transform matrix
+matrix = cv2.getPerspectiveTransform(src_pts, dst_pts)
 
-def connect_points(i, j, points):
-    pygame.draw.line(
-        screen, BLACK, (points[i][0], points[i][1]), (points[j][0], points[j][1]))
+# Create a full-screen transparent canvas (RGBA)
+canvas = np.zeros((600, 800, 4), dtype=np.uint8)
 
+# Warp the image directly into the final canvas
+cv2.warpPerspective(image, matrix, (800, 600), dst=canvas, borderMode=cv2.BORDER_TRANSPARENT, flags=cv2.INTER_NEAREST)
 
-clock = pygame.time.Clock()
-while True:
+# Convert to pygame surface
+canvas = np.ascontiguousarray(canvas)
+surface = pygame.image.frombuffer(canvas.tobytes(), (800, 600), 'RGBA')
 
-    clock.tick(60)
-
+# Display loop
+running = True
+while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                exit()
+            running = False
 
-    # update stuff
+    screen.fill((30, 30, 30))  # Background
+    screen.blit(surface, (0, 0))# Blit whole canvas
+    for i in points:
+        pygame.draw.circle(screen, (0, 0, 0), (i[0], i[1]), 5)
+    pygame.display.flip()
 
-    rotation_z = np.matrix([
-        [cos(angle), -sin(angle), 0],
-        [sin(angle), cos(angle), 0],
-        [0, 0, 1],
-    ])
-
-    rotation_y = np.matrix([
-        [cos(angle), 0, sin(angle)],
-        [0, 1, 0],
-        [-sin(angle), 0, cos(angle)],
-    ])
-
-    rotation_x = np.matrix([
-        [1, 0, 0],
-        [0, cos(angle), -sin(angle)],
-        [0, sin(angle), cos(angle)],
-    ])
-    angle += 0.01
-
-    screen.fill(WHITE)
-    # drawining stuff
-
-    i = 0
-    for point in points:
-        rotated2d = np.dot(rotation_z, point.reshape((3, 1)))
-        rotated2d = np.dot(rotation_y, rotated2d)
-        rotated2d = np.dot(rotation_x, rotated2d)
-
-        projected2d = np.dot(projection_matrix, rotated2d)
-
-        x = int(projected2d[0][0] * scale) + circle_pos[0]
-        y = int(projected2d[1][0] * scale) + circle_pos[1]
-
-        projected_points[i] = [x, y]
-        pygame.draw.circle(screen, RED, (x, y), 5)
-        i += 1
-
-    for p in range(4):
-        connect_points(p, (p+1) % 4, projected_points)
-        connect_points(p+4, ((p+1) % 4) + 4, projected_points)
-        connect_points(p, (p+4), projected_points)
-
-    pygame.display.update()
+pygame.quit()

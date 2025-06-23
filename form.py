@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
+from render import render
 
 class FormWindow(tk.Tk):
     def __init__(self):
@@ -160,7 +161,9 @@ class FormWindow(tk.Tk):
                 self.output.insert(0, self.filename)
 
     def start(self):
-        pass
+        img_size = [int(self.width.get()), int(self.height.get())]
+        cube_size = [int(self.model_width.get()), int(self.model_height.get())]
+        render(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir, False)
 
 
 
