@@ -12,7 +12,13 @@ pos = [WIDTH/2, HEIGHT/2]
 x_angle = 0.51
 y_angle = 0.79
 
-def make_image_quadrant_transparent(image, quadrants):
+def make_image_quadrant_transparent(image: str, quadrants: list):
+    """creates image with transparent quadrants from image
+
+    :param image: base image
+    :param quadrants: quadrants to make transparent e.g [1, 2, 3, 4]
+    """
+
     img = Image.open(image)
     img = img.convert("RGBA")
     width, height = img.size
@@ -43,7 +49,15 @@ def make_image_quadrant_transparent(image, quadrants):
     img.save('temp/' + str(quadrants) + image.split('/')[-1])
 
 
-def transform_matrix(matrix, w, h):
+def transform_matrix(matrix: np.matrix[3, 3], w: int, h: int):
+    """transforms matrix by width and height
+
+    :param matrix: base matrix
+    :param w: width
+    :param h: height
+    :return: transformed matrix
+    """
+
     t_matrix = np.matrix([
         [w, 0, 0],
         [0, h, 0],
@@ -51,7 +65,14 @@ def transform_matrix(matrix, w, h):
     ])
     return np.dot(t_matrix, matrix)
 
-def transform_image(source, dest):
+def transform_image(source: str, dest: list):
+    """transforms an image so that the corners meet specified points
+
+    :param source: image path
+    :param dest: destination points
+    :return: warped pygame image
+    """
+
     img = cv2.imread(source, cv2.IMREAD_UNCHANGED)
 
     if img.shape[2] == 3:
@@ -69,9 +90,22 @@ def transform_image(source, dest):
 
     return pygame.image.frombuffer(warped.tobytes(), (WIDTH, HEIGHT), 'RGBA')
 
-def render(top_image, left_image, right_image, img_size, cube_size, output_folder):
+def render(top_image: str, left_image: str, right_image: str, img_size: tuple[int, int], cube_size: tuple[int, int], output_folder: str):
+    """renders cube with texture and size, and saves it as png
+
+    :param top_image: top image texture path
+    :param left_image: left image texture path
+    :param right_image: right image texture path
+    :param img_size: output image size
+    :param cube_size: width and height of cube
+    :param output_folder: output directory
+    """
+
 
     pygame.init()
+
+    print('rendering ' + top_image)
+
     points = []
 
     points.append(np.matrix([-1, -1, 1]))
@@ -116,8 +150,6 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
         projected_points[i] = [x, y]
         i += 1
 
-    print('creating matrix')
-
     left_bright = 34
     right_bright = 63
 
@@ -135,8 +167,6 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
     output_surf.blit(left_surf, (-5, 2))
     output_surf.blit(right_surf, (4, 2))
 
-    print('loading images')
-
     output_array_rgb = pygame.surfarray.array3d(output_surf)
     output_array_alpha = pygame.surfarray.pixels_alpha(output_surf)
     output_array = np.dstack((output_array_rgb, output_array_alpha))
@@ -144,17 +174,27 @@ def render(top_image, left_image, right_image, img_size, cube_size, output_folde
     output_image = output_image.rotate(-90)
     output_image = ImageOps.mirror(output_image)
     output_image = output_image.resize((img_size[0], img_size[1]), resample=Image.Resampling.NEAREST)
-    output_image.save(output_folder + '/' + 'output.png')
-
-    print('exporting image')
+    output_image.save(output_folder + '/' + top_image.split('/')[-1])
 
     pygame.quit()
 
-def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, output_folder):
+def render_stair(top_texture: str, left_texture: str, right_texture: str, img_size: tuple[int, int], cube_size: tuple[int, int], output_folder: str):
+    """renders model with stair shape with texture and size, and saves it as a png
+
+    :param top_texture: top image texture path
+    :param left_texture: left image texture path
+    :param right_texture: right image texture path
+    :param img_size: size of output image
+    :param cube_size: width and height of model
+    :param output_folder: output directory
+    """
+
 
     pygame.init()
 
     os.makedirs('temp', exist_ok=True)
+
+    print('rendering ' + top_texture)
 
     points = []
 
@@ -218,8 +258,6 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
         projected_points[i] = [x, y]
         i += 1
 
-    print('creating matrix')
-
     make_image_quadrant_transparent(top_texture, [3, 4])
     make_image_quadrant_transparent(top_texture, [1, 2])
     make_image_quadrant_transparent(left_texture, [2])
@@ -242,8 +280,6 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
     output_surf = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     output_surf.fill((0, 0, 0, 0))
 
-    print('loading images')
-
     output_surf.blit(top_left_surf, (9, 0))
     output_surf.blit(top_right_surf, (-2, 4))
     output_surf.blit(left_surf, (4, 7))
@@ -257,9 +293,7 @@ def render_stair(top_texture, left_texture, right_texture, img_size, cube_size, 
     output_image = output_image.rotate(-90)
     output_image = ImageOps.mirror(output_image)
     output_image = output_image.resize((img_size[0], img_size[1]), resample=Image.Resampling.NEAREST)
-    output_image.save(output_folder + '/' + 'output.png')
-
-    print('exporting image')
+    output_image.save(output_folder + '/' + top_texture.split('/')[-1])
 
     pygame.quit()
 

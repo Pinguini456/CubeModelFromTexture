@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog
 from render import render, render_stair
@@ -34,6 +35,8 @@ class FormWindow(tk.Tk):
         self.model_height = tk.Entry(self, width=5, validate='all', validatecommand=(self.vcmd, '%P'))
         self.width = tk.Entry(self, width=5, validate='all', validatecommand=(self.vcmd, '%P'))
         self.height = tk.Entry(self, width=5, validate='all', validatecommand=(self.vcmd, '%P'))
+        self.model_width.insert(0, "100")
+        self.model_height.insert(0, "100")
 
         self.using_stair = tk.Checkbutton(self, text="use stair shape", variable=self.stair, onvalue=1, offvalue=0)
         self.bulk_mode = tk.Checkbutton(self, text="bulk convert", variable=self.bulk, command=self.toggle_bulk)
@@ -86,10 +89,13 @@ class FormWindow(tk.Tk):
         self.output_browse.place(x=187, y=258)
         self.start_button.place(x=110, y=300)
 
+    # callback for digit only validation
     def entry_callback(self, P):
         return str.isdigit(P) or P == ""
 
     def toggle_bulk(self):
+        """toggles texture entries for bulk mode"""
+
         if self.bulk.get() == 1:
             self.left_texture.place_forget()
             self.left_texture_label.place_forget()
@@ -132,6 +138,11 @@ class FormWindow(tk.Tk):
             self.texture_dir = ''
 
     def upload_action(self, direction):
+        """handles uploads
+
+        Parameters:
+            direction - what entry is being uploaded to
+        """
         if direction == 'all' or direction == 'output':
             self.filename = filedialog.askdirectory()
         else:
@@ -162,8 +173,34 @@ class FormWindow(tk.Tk):
                 self.output.insert(0, self.filename)
 
     def start(self):
-        img_size = [int(self.width.get()), int(self.height.get())]
-        cube_size = [int(self.model_width.get()), int(self.model_height.get())]
+        """starts the rendering process of the models"""
+
+        # entry checks
+        if self.width.get() == '' or self.height.get() == '':
+            print("invalid image size")
+            return
+        if self.model_width.get() == '' or self.model_height.get() == '':
+            print("invalid model size")
+            return
+        if self.bulk.get() == 0:
+            if self.up_texture_file == '':
+                print("no top texture found")
+                return
+            if self.left_texture_file == '':
+                print("no left texture found")
+                return
+            if self.right_texture_file == '':
+                print("no right texture found")
+                return
+        else:
+            if self.texture_dir == '':
+                print("no input directory specified")
+                return
+        if self.output_dir == '':
+            print("no output directory specified")
+
+        img_size = (int(self.width.get()), int(self.height.get()))
+        cube_size = (int(self.model_width.get()), int(self.model_height.get()))
 
         if self.bulk.get() == 0:
             if self.stair.get() == 1:
@@ -171,6 +208,12 @@ class FormWindow(tk.Tk):
             else:
                 render(self.up_texture_file, self.left_texture_file, self.right_texture_file, img_size, cube_size, self.output_dir)
         else:
-            pass
+            for item in os.listdir(self.texture_dir):
+                texture = os.path.join(self.texture_dir, item).replace('\\', '/')
+
+                if self.stair.get() == 1:
+                    render_stair(texture, texture, texture, img_size, cube_size, self.output_dir)
+                else:
+                    render(texture, texture, texture, img_size, cube_size, self.output_dir)
 
 
