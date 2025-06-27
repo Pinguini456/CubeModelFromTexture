@@ -1,2 +1,3 @@
-# CubeModelFromTexture
-creates a png of a cube from a specified texture
+# Cube Model Generator
+
+creates a png of a cube model from textures. kinda like a minecraft item.
