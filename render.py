@@ -49,21 +49,27 @@ def make_image_quadrant_transparent(image: str, quadrants: list):
     img.save('temp/' + str(quadrants) + image.split('/')[-1])
 
 
-def transform_matrix(matrix: np.matrix[3, 3], w: int, h: int):
-    """transforms matrix by width and height
+def no_scale_resize(image: str, percentage: float):
+    """resizes a png without scaling the image
 
-    :param matrix: base matrix
-    :param w: width
-    :param h: height
-    :return: transformed matrix
+    :param image: image path
+    :param percentage: height scale factor
     """
 
-    t_matrix = np.matrix([
-        [w, 0, 0],
-        [0, h, 0],
-        [0, 0, w]
-    ])
-    return np.dot(t_matrix, matrix)
+    img = Image.open(image)
+    img = img.convert("RGBA")
+    w, h = img.size
+    pixels = img.load()
+
+    trans_height = h * (1 - percentage)
+
+    for x in range(0, w):
+        for y in range(0, int(trans_height)):
+            r, g, b, a = pixels[x, y]
+            pixels[x, y] = (r, g, b, 0)
+
+    img.save('temp/' + str(percentage) + image.split('/')[-1])
+
 
 def transform_image(source: str, dest: list):
     """transforms an image so that the corners meet specified points
@@ -104,9 +110,13 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
 
     pygame.init()
 
+    os.makedirs('temp', exist_ok=True)
+
     print('rendering ' + top_image)
 
     points = []
+
+    height = (2 * (cube_size[1] / 100)) - 1
 
     points.append(np.matrix([-1, -1, 1]))
     points.append(np.matrix([1, -1, 1]))
@@ -117,10 +127,22 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     points.append(np.matrix([1, 1, -1]))
     points.append(np.matrix([-1, 1, -1]))
 
+    points.append(np.matrix([1, height, -1]))
+    points.append(np.matrix([-1, height, -1]))
+    points.append(np.matrix([1, height, 1]))
+    points.append(np.matrix([-1, height, 1]))
+
+
     projection_matrix = np.matrix([
         [1, 0, 0],
         [0, 1, 0],
         [0, 0, 0]
+    ])
+
+    t_matrix = np.matrix([
+        [cube_size[0] / 100, 0, 0],
+        [0, 1, 0],
+        [0, 0, cube_size[0] / 100]
     ])
 
     projected_points = [
@@ -141,7 +163,7 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
 
     i = 0
     for point in points:
-        transform3d = transform_matrix(point.reshape((3, 1)), cube_size[0] / 100, cube_size[1] / 100)
+        transform3d = np.dot(t_matrix, point.reshape((3, 1)))
         rotated3d = np.dot(y_rotation_matrix, transform3d)
         rotated3d = np.dot(x_rotation_matrix, rotated3d)
         projected2d = np.dot(projection_matrix, rotated3d)
@@ -153,9 +175,12 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     left_bright = 34
     right_bright = 63
 
-    top_surf = transform_image(top_image, [projected_points[4], projected_points[0], projected_points[1], projected_points[5]])
-    left_surf = transform_image(left_image, [projected_points[5], projected_points[4], projected_points[7], projected_points[6]])
-    right_surf = transform_image(right_image, [projected_points[5], projected_points[1], projected_points[2], projected_points[6]])
+    no_scale_resize(left_image, cube_size[1] / 100)
+    no_scale_resize(right_image, cube_size[1] / 100)
+
+    top_surf = transform_image(top_image, [projected_points[9], projected_points[11], projected_points[10], projected_points[8]])
+    left_surf = transform_image('temp/' + str(cube_size[1] / 100) + left_image.split('/')[-1], [projected_points[5], projected_points[4], projected_points[7], projected_points[6]])
+    right_surf = transform_image('temp/' + str(cube_size[1] / 100) + right_image.split('/')[-1], [projected_points[5], projected_points[1], projected_points[2], projected_points[6]])
 
     left_surf.fill((left_bright, left_bright, left_bright), special_flags=pygame.BLEND_RGB_SUB)
     right_surf.fill((right_bright, right_bright, right_bright), special_flags=pygame.BLEND_RGB_SUB)
@@ -177,6 +202,12 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     output_image.save(output_folder + '/' + top_image.split('/')[-1])
 
     pygame.quit()
+
+    for item in os.listdir('temp'):
+        item_path = os.path.join('temp', item)
+        if os.path.isfile(item_path):
+            os.remove(item_path)
+
 
 def render_stair(top_texture: str, left_texture: str, right_texture: str, img_size: tuple[int, int], cube_size: tuple[int, int], output_folder: str):
     """renders model with stair shape with texture and size, and saves it as a png
@@ -228,6 +259,12 @@ def render_stair(top_texture: str, left_texture: str, right_texture: str, img_si
         [0, 0, 0]
     ])
 
+    t_matrix = np.matrix([
+        [cube_size[0] / 100, 0, 0],
+        [0, cube_size[1] / 100, 0],
+        [0, 0, cube_size[0] / 100]
+    ])
+
     xz_reflection_matrix = np.matrix([
         [1, 0, 0],
         [0, -1, 0],
@@ -248,7 +285,7 @@ def render_stair(top_texture: str, left_texture: str, right_texture: str, img_si
 
     i = 0
     for point in points:
-        transformed3d = transform_matrix(point.reshape((3, 1)), cube_size[0] / 100, cube_size[1] / 100)
+        transformed3d = np.dot(t_matrix, point.reshape((3, 1)))
         reflected3d = np.dot(xz_reflection_matrix, transformed3d)
         rotated3d = np.dot(y_rotation_matrix, reflected3d)
         rotated3d = np.dot(x_rotation_matrix, rotated3d)
