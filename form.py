@@ -211,9 +211,16 @@ class FormWindow(tk.Tk):
             for item in os.listdir(self.texture_dir):
                 texture = os.path.join(self.texture_dir, item).replace('\\', '/')
 
+                if os.path.isdir(texture):
+                    continue
+                if item == 'desktop.ini':
+                    continue
+
                 if self.stair.get() == 1:
                     render_stair(texture, texture, texture, img_size, cube_size, self.output_dir)
                 else:
                     render(texture, texture, texture, img_size, cube_size, self.output_dir)
+
+            print("Done!")
 
 

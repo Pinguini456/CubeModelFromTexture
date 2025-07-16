@@ -117,6 +117,7 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     points = []
 
     height = (2 * (cube_size[1] / 100)) - 1
+    print(height)
 
     points.append(np.matrix([-1, -1, 1]))
     points.append(np.matrix([1, -1, 1]))
@@ -127,10 +128,10 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     points.append(np.matrix([1, 1, -1]))
     points.append(np.matrix([-1, 1, -1]))
 
-    points.append(np.matrix([1, height, -1]))
-    points.append(np.matrix([-1, height, -1]))
-    points.append(np.matrix([1, height, 1]))
-    points.append(np.matrix([-1, height, 1]))
+    points.append(np.matrix([1, -height, -1]))
+    points.append(np.matrix([-1, -height, -1]))
+    points.append(np.matrix([1, -height, 1]))
+    points.append(np.matrix([-1, -height, 1]))
 
 
     projection_matrix = np.matrix([
@@ -172,14 +173,14 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
         projected_points[i] = [x, y]
         i += 1
 
-    left_bright = 34
-    right_bright = 63
+    left_bright = 34 / 2
+    right_bright = 63 / 2
 
     no_scale_resize(left_image, cube_size[1] / 100)
     no_scale_resize(right_image, cube_size[1] / 100)
 
     top_surf = transform_image(top_image, [projected_points[9], projected_points[11], projected_points[10], projected_points[8]])
-    left_surf = transform_image('temp/' + str(cube_size[1] / 100) + left_image.split('/')[-1], [projected_points[5], projected_points[4], projected_points[7], projected_points[6]])
+    left_surf = transform_image('temp/' + str(cube_size[1] / 100) + left_image.split('/')[-1], [projected_points[4], projected_points[5], projected_points[6], projected_points[7]])
     right_surf = transform_image('temp/' + str(cube_size[1] / 100) + right_image.split('/')[-1], [projected_points[5], projected_points[1], projected_points[2], projected_points[6]])
 
     left_surf.fill((left_bright, left_bright, left_bright), special_flags=pygame.BLEND_RGB_SUB)
@@ -189,7 +190,7 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     output_surf.fill((0, 0, 0, 0))
 
     output_surf.blit(top_surf, (8, 0))
-    output_surf.blit(left_surf, (-5, 2))
+    output_surf.blit(left_surf, (4, 7))
     output_surf.blit(right_surf, (4, 2))
 
     output_array_rgb = pygame.surfarray.array3d(output_surf)
