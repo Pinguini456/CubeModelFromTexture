@@ -117,7 +117,6 @@ def render(top_image: str, left_image: str, right_image: str, img_size: tuple[in
     points = []
 
     height = (2 * (cube_size[1] / 100)) - 1
-    print(height)
 
     points.append(np.matrix([-1, -1, 1]))
     points.append(np.matrix([1, -1, 1]))
@@ -308,8 +307,8 @@ def render_stair(top_texture: str, left_texture: str, right_texture: str, img_si
     right_top_surf = transform_image('temp/' + str([3, 4]) + right_texture.split('/')[-1], [projected_points[8], projected_points[9], projected_points[15], projected_points[14]])
     right_bottom_surf = transform_image('temp/' + str([1, 2]) + right_texture.split('/')[-1], [projected_points[6], projected_points[2], projected_points[1], projected_points[5]])
 
-    left_bright = 34
-    right_bright = 63
+    left_bright = 34 / 2
+    right_bright = 63 / 2
 
     left_surf.fill((left_bright, left_bright, left_bright), special_flags=pygame.BLEND_RGB_SUB)
     right_top_surf.fill((right_bright, right_bright, right_bright), special_flags=pygame.BLEND_RGB_SUB)
