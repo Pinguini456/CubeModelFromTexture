@@ -19,7 +19,7 @@ A lightweight desktop application that transforms 2D textures into rendered isom
 
 ### Windows Executable
 
-Download the latest release from the [Releases](https://github.com/yourusername/CubeModelFromTexture/releases) page. No Python installation required.
+Download the latest release from the [Releases](https://github.com/Pinguini456/CubeModelFromTexture/releases) page. No Python installation required.
 
 1. Download `CubeModelGenerator.exe` from the latest release
 2. Run the executable
